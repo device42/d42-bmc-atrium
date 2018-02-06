@@ -58,6 +58,10 @@
                         resource="ip"
                         target="Address" // field within class BMC_IPENDPOINT to fill with this field 
                     />
+                    <subfield  
+                        resource="macaddress"
+                        target="MACAddress" // field within class BMC_IPENDPOINT to fill with this field 
+                    />
                 <field 
                     resource="serial_no" 
                     type="string" 

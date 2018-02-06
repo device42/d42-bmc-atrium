@@ -48,7 +48,7 @@ def random_string(length=10):
     )
 
 
-def build_child_item():
+def build_child_item(field, item, mapping):
     schema = {
             "instance": {
                 "instance_id": "",
@@ -68,8 +68,29 @@ def build_child_item():
             "_links": {}
     }
 
+    ns = field.attrib['namespace']
+    ds = field.attrib['dataset']
+    classname = field.attrib['child_class']
 
-    
+    schema['instance']['class_name_key']['namespace'] = ns
+    schema['instance']['dataset_id'] = ds
+    schema['instance']['class_name_key']['name'] = classname
+
+    # for naming these children CIs use the key from the parent obj mapping
+    # TODO: is there a way to do this better? probably
+    name = "%s_%s" % (
+        item[mapping.attrib['key']],  # device_id, often times
+        classname
+    )
+    schema['instance']['attributes']['Name'] = name
+
+    subfields = field.findall('subfield')
+    for sub in subfields:
+        target = sub.attrib['target']
+        resource = item[sub.attrib['resource']]
+        schema['instance']['attributes'][target] = resource
+    return schema
+
 
 def perform_bulk_request(
     mapping,
@@ -141,8 +162,8 @@ def perform_bulk_request(
 
                     # build a child item schema externally and return it here
                     # to be added to the bulk payload
-                    schema = build_child_item(field) 
-                    
+                    schema = build_child_item(field, item)
+
                     # schema['instance']['class_name_key']['namespace'] = ns
                     # schema['instance']['dataset_id'] = ds
 
