@@ -121,7 +121,7 @@ def perform_bulk_request(
 
     # for each item returned from D42
     for item in source[mapping.attrib['source']]:
-        print('device_id: ', item['device_id'])
+        print("current item: \n %s" % json.dumps(item, indent=2))
         attributes = {}
         # schema will be filled with the content of each item
         schema = {
@@ -143,9 +143,9 @@ def perform_bulk_request(
             "_links": {}
         }
         # default / general values
-        schema['instance']['instance_id'] = "%s_%s_d42" % (
-            str(item['device_id']), random_string(7)  # to ensure random
-        )
+        # schema['instance']['instance_id'] = "%s_%s_d42" % (
+        #     str(item['device_id']), random_string(7)  # to ensure random
+        # )
         namespace = mapping.attrib['namespace']
         classname = mapping.attrib['class']
         dataset = mapping.attrib['dataset']
@@ -157,25 +157,7 @@ def perform_bulk_request(
         # loop through devices
         # and find fields shared between the item and the mapping fields
         for field in fields:
-            print('current field: ', str(field.attrib['resource']))
-            # check if field overrides default class
-            if field.get('child_class'):
-                child_class = field.attrib['child_class']
-                # schema['instance']['class_name_key']['name'] = child_class
-                if field.get('dataset') and field.get('namespace'):
-                    # override default values for this attribute
-                    # ns = field.attrib['namespace']
-                    # ds = field.attrib['dataset']
-
-                    # build a child item schema externally and return it here
-                    # to be added to the bulk payload
-                    schema = build_child_item(field, item)
-
-                    # schema['instance']['class_name_key']['namespace'] = ns
-                    # schema['instance']['dataset_id'] = ds
-
             # check if field is a top level or nested
-            # if nested
             if field.get('sub-key'):
                 # if it has a subkey,
                 # then we grab subkey from the resource @ field
@@ -185,23 +167,39 @@ def perform_bulk_request(
                     target = field.attrib['target']
                     resource = item[field.attrib['resource']][field.attrib['sub-key']]
                     attributes[target] = resource
+
             # if top level
             if item[field.attrib['resource']]:
                 target = field.attrib['target']
                 resource = item[field.attrib['resource']]
+
+                if field.get('prefix'):
+                    # add prefix to resource
+                    prefix = field.attrib['prefix']
+                    resource = "%s%s" % (prefix, resource)
+
+                if field.get('suffix'):
+                    # add suffix to resource
+                    suffix = field.attrib['suffix']
+                    resource = "%s%s" % (resource, suffix)
+
+                # unique instance_id is a required field outside attributes
+                if target is "instance_id":
+                    schema['instance']['instance_id'] = resource
+
                 attributes[target] = resource
 
         schema['instance']['attributes'] = attributes
 
         bulk_payload.append(schema)
 
-    print('payload: ')
-    print(json.dumps(bulk_payload, indent=4))
-    print(type(target_api))
+    print("bulk payload: \n %s" % json.dumps(bulk_payload, indent=2))
+
+    sys.exit()
+
     response = target_api.request(_target.attrib['path'], 'POST', bulk_payload)
     print("bulk insert API response: %s" % json.dumps(response, indent=4))
     sys.exit
-
 
     # perform bulk insert
 
@@ -263,19 +261,20 @@ def from_d42(
     fields = mapping.findall('field')
     field_names = [field.attrib['target'] for field in fields]
     print('field names: ', field_names)
+
     # convert CSV doql results to JSON
     if doql is True:
         doql_util = Doql_Util()
-        # print('csv source: ', source)
-        source = doql_util.csv_to_json(source)
-    # print('json source: ', json.dumps(source, indent=2))
-    
+        source = doql_util.csv_to_json(
+            source,
+            mapping_source=mapping.attrib['source']
+        )
+
     # match_map contains 'target field': field
     match_map = {field.attrib['target']: field for field in fields}
     print('match_map: ', match_map)
     namespace = mapping.attrib['namespace']
-    
-    sys.exit()
+
     # TODO: incorporate existing_object function
 
     success = perform_bulk_request(

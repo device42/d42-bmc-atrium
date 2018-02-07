@@ -8,19 +8,25 @@ import requests
 
 class Doql_Util():
 
-    def csv_to_json(self, doql_csv):
+    def csv_to_json(self, doql_csv, mapping_source=None):
         listrows = doql_csv.split('\n')
         fields = listrows[0].split(',')
-        rows = csv.reader(listrows[1:])
+        rows = csv.reader(listrows[1:-1])
         out = []
         for row in rows:
             items = zip(fields, row)
             item = {}
             for (name, value) in items:
                 item[name] = value.strip()
+            # dont add empty objects
+            
             out.append(item)
-        
-        # print(json.dumps(out, indent=2))
+
+        # if mapping_source, store all items under mapping_source
+        # to conform to shape of API results
+        if mapping_source is not None: 
+            out = {mapping_source: out}
+            return out
         return out
 
 

@@ -127,10 +127,11 @@ def task_execute(task, services):
 
     # source will contain the objects from the _resource endpoint
     if doql is not None:
+        print("doql is not None")
         source = resource_api.request(source_url, method, doql=doql)
         lib.from_d42(
-            source, mapping, 
-            _target, _resource, 
+            source, mapping,
+            _target, _resource,
             target_api, resource_api,
             doql=True
         )

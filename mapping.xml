@@ -32,20 +32,21 @@
                 />
             </api>
 
-            <mapping 
-                callback="from_d42" 
-                key="device_id" 
-                source="Devices" 
-                class="BMC_IPENDPOINT" 
+            <mapping
+                callback="from_d42"
+                key="device_id"
+                source="ips"
+                class="BMC_IPENDPOINT"
                 dataset="BMC.ASSET"
                 namespace="BMC.CORE"
             >
-                <field resource="device_id" type="string" target="Name"/>
-                <field resource="serial_no" type="string" target="SerialNumber"/>
+                <field resource="ipaddress_pk" type="string" prefix="IP_" target="instance_id" suffix="_d42"/>
+                <field resource="ipaddress_pk" type="string" prefix="IP_" target="Name" suffix="_d42"/>
+                <field resource="ip_address" type="string" target="Address"/>
                 <field resource="notes" type="string" target="Notes"/>
-                <field resource="type" type="string" target="Type"/>
+                <!-- <field resource="type" type="string" target="Type"/>
                 <field resource="service_level" type="string" target="EnvironmentSpecification"/>
-                <field resource="notes" type="string" target="Notes"/>
+                <field resource="notes" type="string" target="Notes"/> -->
 
             </mapping>
         </task>
