@@ -25,9 +25,10 @@
                 <resource 
                     model="device" 
                     target="device42" 
-                    method="GET" 
+                    method="POST" 
                     extra-filter="" 
-                    path="/api/1.0/devices/all/"
+                    path="/services/data/v1.0/query/"
+                    doql="SELECT * FROM view_ipaddress_v1"
                 />
             </api>
 
@@ -35,7 +36,7 @@
                 callback="from_d42" 
                 key="device_id" 
                 source="Devices" 
-                class="BMC_ComputerSystem" 
+                class="BMC_IPENDPOINT" 
                 dataset="BMC.ASSET"
                 namespace="BMC.CORE"
             >

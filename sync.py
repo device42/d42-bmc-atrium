@@ -64,7 +64,7 @@ class Atrium(Service):
 
 
 class Device42(Service):
-    def request(self, path, method, data=()):
+    def request(self, path, method, data=(), doql=None):
         headers = {
             'Authorization': 'Basic ' + base64.b64encode((self.user + ':' + self.password).encode()).decode(),
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -76,6 +76,18 @@ class Device42(Service):
             response = requests.get(self.url + path,
                                     headers=headers, verify=False)
             result = json.loads(response.content.decode())
+        if method == 'POST' and doql is not None:
+            payload = {
+                "query": doql,
+                "header": "yes"
+            }
+            response = requests.post(
+                self.url + path,
+                headers=headers,
+                verify=False,
+                data=payload
+            )
+            result = response.text
         return result
 
 
@@ -102,16 +114,38 @@ def task_execute(task, services):
 
     mapping = task.find('mapping')
     source_url = _resource.attrib['path']
+
+    method = _resource.attrib['method']
+    doql = None
+
     if _resource.attrib.get("extra-filter"):
         source_url += _resource.attrib.get("extra-filter") + "&amp;"
 
+    if _resource.attrib.get('doql'):
+        print(_resource.attrib['doql'])
+        doql = _resource.attrib['doql']
+
     # source will contain the objects from the _resource endpoint
-    source = resource_api.request(source_url, _resource.attrib['method'])
+    if doql is not None:
+        source = resource_api.request(source_url, method, doql=doql)
+        lib.from_d42(
+            source, mapping, 
+            _target, _resource, 
+            target_api, resource_api,
+            doql=True
+        )
+
+    else:
+        source = resource_api.request(source_url, method)
+        lib.from_d42(
+            source, mapping, 
+            _target, _resource, 
+            target_api, resource_api,
+            doql=False
+        )
 
     # moves the objects to _target
     # lib.from_d42(source, mapping, _target, _resource, target_api, resource_api, configuration_item)
-    lib.from_d42(source, mapping, _target, _resource, target_api, resource_api)
-
 
 print('Running...')
 

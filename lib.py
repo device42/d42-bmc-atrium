@@ -1,6 +1,6 @@
 import sys, json, random, string
 from importlib import reload
-
+from doql import Doql_Util
 
 reload(sys)
 
@@ -36,6 +36,13 @@ def get_existing_cherwell_objects_map(data):
                 cnt += 1
     print(cnt)
     return result
+
+
+def get_existing_bmc_objects():
+
+    # make a query against BMC filtered by some CI attribute 
+    # shared by all D42 CIs.  
+    return ''
 
 
 def random_string(length=10):
@@ -247,24 +254,30 @@ def perform_bulk_request(
     return True
 
 
-def from_d42(source, mapping, _target, _resource, target_api, resource_api):
+def from_d42(
+    source, mapping, 
+    _target, _resource, 
+    target_api, resource_api, 
+    doql=False
+):
     fields = mapping.findall('field')
     field_names = [field.attrib['target'] for field in fields]
-
+    print('field names: ', field_names)
+    # convert CSV doql results to JSON
+    if doql is True:
+        doql_util = Doql_Util()
+        # print('csv source: ', source)
+        source = doql_util.csv_to_json(source)
+    # print('json source: ', json.dumps(source, indent=2))
+    
     # match_map contains 'target field': field
     match_map = {field.attrib['target']: field for field in fields}
-
+    print('match_map: ', match_map)
     namespace = mapping.attrib['namespace']
-    # bus_object_config = {
-    #     "busObId": configuration_item,
-    #     "fieldNames": field_names
-    # }
-
+    
+    sys.exit()
     # TODO: incorporate existing_object function
-    # existing_objects = get_existing_cherwell_objects(target_api, configuration_item, 1, [])
-    # existing_objects_map = get_existing_cherwell_objects_map(existing_objects)
 
-    # bus_object = target_api.request('/api/V1/getbusinessobjecttemplate', 'POST', bus_object_config)
     success = perform_bulk_request(
         mapping,
         fields,
