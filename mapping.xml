@@ -11,10 +11,8 @@
                 password="adm!nd42"/>
     </settings>
 
-
        <tasks>
-
-        <task enable="true" description="Copy Servers from Device42 to BMC Atrium">
+        <task enable="true" description="Copy IPs from Device42 to BMC Atrium">
             <api>
                 <target 
                     target="atrium" 
@@ -36,7 +34,7 @@
                 callback="from_d42"
                 key="device_id"
                 source="ips"
-                class="BMC_IPENDPOINT"
+                class="BMC_IPEndpoint"
                 dataset="BMC.ASSET"
                 namespace="BMC.CORE"
             >
@@ -44,10 +42,100 @@
                 <field resource="ipaddress_pk" type="string" prefix="IP_" target="Name" suffix="_d42"/>
                 <field resource="ip_address" type="string" target="Address"/>
                 <field resource="notes" type="string" target="Notes"/>
-                <!-- <field resource="type" type="string" target="Type"/>
-                <field resource="service_level" type="string" target="EnvironmentSpecification"/>
-                <field resource="notes" type="string" target="Notes"/> -->
+            </mapping>
+        </task>
 
+        <task enable="true" description="Copy Devices from D42 to BMC Atrium">
+            <api>
+                <target 
+                    target="atrium" 
+                    method="POST" 
+                    update_method="PATCH" 
+                    path="/api/cmdb/v1.0/bulk"
+                />
+                <resource 
+                    model="device" 
+                    target="device42" 
+                    method="GET" 
+                    extra-filter="?tags=bmc" 
+                    path="/api/1.0/devices/all/"
+                />
+            </api>
+
+            <mapping
+                callback="from_d42"
+                key="device_id"
+                source="Devices"
+                class="BMC_ComputerSystem"
+                dataset="BMC.ASSET"
+                namespace="BMC.CORE"
+            >
+                <field resource="device_id" type="string" prefix="" target="instance_id" suffix="_d42"/>
+                <field resource="serial_no" type="string" prefix="" target="SerialNumber" suffix=""/>
+                <field resource="type" type="string" target="Type"/>
+                <field resource="notes" type="string" target="Notes"/>
+                <field resource="category" type="string" target="Category"/>
+
+            </mapping>
+        </task>
+
+        <task enable="true" description="Link IPs to Devices on BMC using DOQL query">
+            <api>
+                <target 
+                    target="atrium" 
+                    method="POST" 
+                    update_method="PATCH" 
+                    path="/api/cmdb/v1.0/bulk"
+                />
+                <resource 
+                    model="device" 
+                    target="device42" 
+                    method="POST" 
+                    extra-filter="" 
+                    path="/services/data/v1.0/query/"
+                    doql=""
+                />
+            </api>
+
+            <mapping
+                callback="from_d42"
+                key="device_id"
+                source=""
+                class="BMC_BaseRelationship"
+                dataset="BMC.ASSET"
+                namespace="BMC.CORE"
+            >
+
+                <field value="Destination-Source" resource="" type="string" prefix="" target="ImpactDirection" suffix=""/>
+                <!-- <field value="Source-Destination" resource="" type="string" prefix="IP_" target="Name" suffix="_d42"/> -->
+                <field value="Yes" resource="" type="string" prefix="" target="HasImpact" suffix=""/>
+
+
+
+                <!-- TO add 
+                http://10.42.3.69:8008/api/cmdb/v1.0/attributes/BMC.CORE/BMC_BaseRelationship
+
+                Destination.ClassId
+                Destination.DatasetId
+                Destination.InstanceId * required
+                
+                Source.ClassId
+                Source.DatasetId
+                Source.InstanceId * required
+
+                ImpactDestinationId
+                ImpactSourceId
+                ImpactWeight
+                
+                InstanceId ? optional
+                Name * required 
+
+                ShortDescription ? optional
+
+                Submitter * required
+
+                AccountID ? optional
+                  -->
             </mapping>
         </task>
     </tasks>

@@ -29,7 +29,6 @@ class Atrium(Service):
             'username': self.user
         }
 
-        # payload = urllib.urlencode(data, encoding='latin')
         url = "%s/api/jwt/login/" % self.url
         print('url: ', url)
         response = requests.request("POST", url, data=body, headers=headers)
@@ -51,7 +50,10 @@ class Atrium(Service):
         url = self.url + path
         if method == 'GET':
             response = requests.get(url, headers=headers, verify=False)
-            result = json.loads(response.content.decode())
+            if response.status_code == requests.codes.ok:
+                result = json.loads(response.content.decode())
+            else:
+                print("ERROR %s - %s" % (response.status_code, response.text))
         elif method == 'POST':
             response = requests.post(
                 url, 
@@ -59,7 +61,10 @@ class Atrium(Service):
                 headers=headers, 
                 verify=False
             )
-            result = json.loads(response.content.decode())
+            if response.status_code == requests.codes.ok:
+                result = json.loads(response.content.decode())
+            else:
+                print("ERROR %s - %s" % (response.status_code, response.text))
         return result
 
 
@@ -103,7 +108,6 @@ def task_execute(task, services):
 
     _resource = task.find('api/resource')
     _target = task.find('api/target')
-    # configuration_item = task.find('configuration-item').attrib['bus-ob-id']
 
     if _resource.attrib['target'] == 'atrium':
         resource_api = services['atrium']
@@ -120,14 +124,14 @@ def task_execute(task, services):
 
     if _resource.attrib.get("extra-filter"):
         source_url += _resource.attrib.get("extra-filter") + "&amp;"
-
+    print(source_url)
+    # sys.exit()
     if _resource.attrib.get('doql'):
         print(_resource.attrib['doql'])
         doql = _resource.attrib['doql']
 
     # source will contain the objects from the _resource endpoint
     if doql is not None:
-        print("doql is not None")
         source = resource_api.request(source_url, method, doql=doql)
         lib.from_d42(
             source, mapping,
@@ -144,9 +148,6 @@ def task_execute(task, services):
             target_api, resource_api,
             doql=False
         )
-
-    # moves the objects to _target
-    # lib.from_d42(source, mapping, _target, _resource, target_api, resource_api, configuration_item)
 
 print('Running...')
 
