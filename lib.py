@@ -107,7 +107,7 @@ def perform_bulk_request(
                     attributes[target] = resource
 
             # if top level
-            if item[field.attrib['resource']]: # if not empty
+            if item.get(field.attrib['resource']): # if not empty
                 target = field.attrib['target']
                 print("target: ", target)
                 resource = item[field.attrib['resource']]
@@ -126,17 +126,17 @@ def perform_bulk_request(
                 if target == "instance_id" or target == "InstanceId":
                     # resource = "OI-4A7D1B44286E43AB8C93B45CA52C73D0"
                     if resource in existing_ids:
-                        print("obj exists!!!")
                         schema['operation'] = "PATCH"
                     schema['instance']['instance_id'] = resource
                     attributes['InstanceId'] = resource 
                 else:
                     attributes[target] = resource
             else: # resource is empty, check if value 
-                if item[field.attrib['value']]: # hardcoded value
-                    target = field.attrib['target']
-                    value = item[field.attrib['value']]
-                    attributes[target] = value
+                if field.get('value'): # hardcoded value, not null
+                    if item.get(field.attrib['value']): # dont try to get attrib if doesnt exist
+                        target = field.attrib['target']
+                        value = item[field.attrib['value']]
+                        attributes[target] = value
 
         schema['instance']['attributes'] = attributes
 

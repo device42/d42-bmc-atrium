@@ -38,10 +38,10 @@
                 dataset="BMC.ASSET"
                 namespace="BMC.CORE"
             >
-                <field resource="ipaddress_pk" type="string" prefix="IP_" target="instance_id" suffix="_d42"/>
-                <field resource="ipaddress_pk" type="string" prefix="IP_" target="Name" suffix="_d42"/>
-                <field resource="ip_address" type="string" target="Address"/>
-                <field resource="notes" type="string" target="Notes"/>
+                <field value="" resource="ipaddress_pk" type="string" prefix="IP_endpoint" target="instance_id" suffix="_d42"/>
+                <field value="" resource="ipaddress_pk" type="string" prefix="IP_endpoint" target="Name" suffix="_d42"/>
+                <field value="" resource="ip_address" type="string" target="Address"/>
+                <field value="" resource="notes" type="string" target="Notes"/>
             </mapping>
         </task>
 
@@ -57,7 +57,7 @@
                     model="device" 
                     target="device42" 
                     method="GET" 
-                    extra-filter="?tags=bmc" 
+                    extra-filter="" 
                     path="/api/1.0/devices/all/"
                 />
             </api>
@@ -70,11 +70,12 @@
                 dataset="BMC.ASSET"
                 namespace="BMC.CORE"
             >
-                <field resource="device_id" type="string" prefix="" target="instance_id" suffix="_d42"/>
-                <field resource="serial_no" type="string" prefix="" target="SerialNumber" suffix=""/>
-                <field resource="type" type="string" target="Type"/>
-                <field resource="notes" type="string" target="Notes"/>
-                <field resource="category" type="string" target="Category"/>
+                <field value="" resource="device_id" type="string" prefix="device_" target="instance_id" suffix="_d42"/>
+                <field value="" resource="device_id" type="string" prefix="device_" target="Name" suffix="_d42"/>
+                <field value="" resource="serial_no" type="string" prefix="" target="SerialNumber" suffix=""/>
+                <field value="" resource="type" type="string" target="Type"/>
+                <field value="" resource="notes" type="string" target="Notes"/>
+                <field value="" resource="category" type="string" target="Category"/>
 
             </mapping>
         </task>
@@ -93,7 +94,7 @@
                     method="POST" 
                     extra-filter="" 
                     path="/services/data/v1.0/query/"
-                    doql=""
+                    doql="SELECT ipaddress_pk, device_fk FROM view_ipaddress_v1 WHERE device_fk IS NOT NULL"
                 />
             </api>
 
@@ -107,9 +108,18 @@
             >
 
                 <field value="Destination-Source" resource="" type="string" prefix="" target="ImpactDirection" suffix=""/>
-                <!-- <field value="Source-Destination" resource="" type="string" prefix="IP_" target="Name" suffix="_d42"/> -->
                 <field value="Yes" resource="" type="string" prefix="" target="HasImpact" suffix=""/>
+                <field value="" resource="device_fk" type="string" prefix="" target="Name" suffix="_ip_d42"/>
+                
+                <field value="BMC.ASSET" resource="" type="string" prefix="" target="Source.DatasetId" suffix=""/>
+                <field value="BMC_ComputerSystem" resource="" type="string" prefix="" target="Source.ClassId" suffix=""/>
+                <field value="" resource="device_fk" type="string" prefix="device_" target="Source.InstanceId" suffix="_d42"/>
 
+                <field value="BMC.ASSET" type="string" resource="" prefix="" target="Destination.DatasetId" suffix=""/>
+                <field value="BMC_IPEndpoint" resource="" type="string" prefix="" target="Destination.ClassId" suffix=""/>
+                <field value="" resource="ipaddress_pk" type="string" prefix="IP_endpoint" target="Destination.InstanceId" suffix="_d42"/>
+                
+                
 
 
                 <!-- TO add 
